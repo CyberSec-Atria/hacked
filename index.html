@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Security Notice</title>
+  <style>
+    :root{
+      --bg:#aa0f0f;
+      --card:#200f0f;
+      --accent:#ff4d6d;
+      --muted:#ffffff;
+      --success:#00e450;
+      --glass: rgba(255, 255, 255, 0.03);
+    }
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:
+      radial-gradient(1200px 600px at 10% 10%, rgba(39, 24, 24, 0.6), transparent 10%),
+      radial-gradient(900px 400px at 90% 90%, rgba(10,12,18,0.5), transparent 15%),
+      var(--bg); color:#e6eef6}
+    .center {
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+      box-sizing:border-box;
+    }
+    .card{
+      width:100%;
+      max-width:720px;
+      background:linear-gradient(180deg,var(--card), rgba(12,15,20,0.7));
+      border-radius:14px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+      padding:28px;
+      backdrop-filter: blur(6px);
+      border:1px solid rgba(255,255,255,0.03);
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap:20px;
+      align-items:center;
+    }
+    .left { padding:10px 8px; }
+    h1{margin:0 0 8px 0;font-size:20px;letter-spacing:-0.2px}
+    p.lead{margin:0 0 14px 0;color:var(--muted);line-height:1.45}
+    .rules{
+      background:var(--glass);
+      padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);
+      color:var(--muted);font-size:13px;margin-bottom:14px;
+    }
+    .right{
+      padding:10px 8px;
+      display:flex;flex-direction:column;gap:12px;
+      align-items:stretch;
+    }
+    input.pass{
+      width:100%;
+      padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);
+      background:transparent;color:inherit;font-size:15px;outline:none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+    button.btn{
+      padding:10px 12px;border-radius:10px;border:0;
+      background:linear-gradient(90deg,var(--accent), #ff6f86);
+      color:white;font-weight:600;cursor:pointer;font-size:15px;
+      box-shadow: 0 6px 18px rgba(255,77,109,0.18);
+    }
+    .status{height:18px;font-size:14px;color:var(--muted);min-height:18px}
+    .status.error{color:#00ff04}
+    .status.ok{color:var(--success)}
+    @media (max-width:780px){
+      .card{grid-template-columns:1fr; padding:18px}
+      .right{order:2}
+      .left{order:1}
+    }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <div class="card">
+      <div class="left">
+        <h1>You've been pranked by <strong>CyberSec.Club — Atria IT</strong></h1>
+        <p class="lead">To avoid further consequences, enter the passcode.</p>
+
+        <div class="rules">
+          <strong>Important:</strong>
+          <ul>
+            <li>Passcode must be 8 digits.</li>
+            <li>5 attempts only.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="right">
+        <label style="font-size:13px;">Enter passcode</label>
+        <input id="pass" class="pass" type="password" inputmode="numeric" maxlength="8" placeholder="________">
+
+        <div style="display:flex;gap:8px">
+          <button id="checkBtn" class="btn">Submit</button>
+          <button id="revealBtn" class="btn" style="background:linear-gradient(90deg,#a22f2f,#56707a)">QUIT</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <small>Attempts left: <span id="left">5</span></small>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // FULLSCREEN LOGIC ------------------------------------------
+    function goFull() {
+      let el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+    }
+
+    // Trigger fullscreen on ANY click
+    document.addEventListener("click", () => {
+      goFull();
+    }, { once: true });
+
+    // ORIGINAL LOGIC --------------------------------------------
+    const PASS = "12345678";
+    const MAX = 5;
+    let tries = 0;
+
+    const passInput = document.getElementById("pass");
+    const btn = document.getElementById("checkBtn");
+    const status = document.getElementById("status");
+    const left = document.getElementById("left");
+    const reveal = document.getElementById("revealBtn");
+
+    function setStatus(msg, type){
+      status.textContent = msg;
+      status.className = "status " + (type || "");
+    }
+
+    function disableInput(){
+      passInput.disabled = true;
+      btn.disabled = true;
+      reveal.disabled = true;
+    }
+
+function check(){
+  const v = passInput.value.trim();
+  if(!/^\d{8}$/.test(v)){
+    setStatus("Passcode must be exactly 8 digits.", "error");
+    return;
+  }
+
+  if(v === PASS){
+    setStatus("Access granted.", "ok");
+    disableInput();
+
+    // redirect after success
+    setTimeout(() => {
+      window.location.href = "https://cybersec-atria.vercel.app/";
+    }, 800); // slight delay for effect
+
+    return;
+  }
+
+  // incorrect passcode
+  tries++;
+  left.textContent = MAX - tries;
+  setStatus("Incorrect passcode.", "error");
+
+  if(tries >= MAX){
+    setStatus("Too many failed attempts. Input disabled.", "error");
+    disableInput();
+  }
+}
+
+
+    btn.addEventListener("click", check);
+    passInput.addEventListener("keydown", e => { if(e.key === "Enter") check(); });
+
+    reveal.addEventListener("click", () => {
+      alert("You must enter the password to QUIT.");
+    });
+  </script>
+</body>
+</html>
